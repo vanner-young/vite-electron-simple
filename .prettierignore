@@ -1,0 +1,6 @@
+## 需要忽略格式化的文件列表
+node_modules
+bundle
+example
+node_modules
+rollup.config.cjs

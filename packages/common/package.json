@@ -1,0 +1,34 @@
+{
+    "name": "@vite-electron-simple/common",
+    "version": "1.1.4",
+    "description": "",
+    "main": "./bundle/index.js",
+    "scripts": {
+        "build": "rollup --config rollup.config.cjs",
+        "prepublishOnly": "pnpm build"
+    },
+    "author": "vanner-young",
+    "license": "ISC",
+    "packageManager": "pnpm@10.10.0",
+    "files": [
+        "bundle/**/*",
+        "README.md",
+        "package.json"
+    ],
+    "keywords": [
+        "@vite-electron-simple/common",
+        "common",
+        "electron",
+        "vite"
+    ],
+    "publishConfig": {
+        "access": "public",
+        "registry": "https://registry.npmjs.org/"
+    },
+    "peerDependencies": {
+        "electron": ">28.0.0"
+    },
+    "dependencies": {
+        "electron-log": "^5.4.0"
+    }
+}
