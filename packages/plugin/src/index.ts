@@ -46,7 +46,12 @@ class ElectronDev {
     /**
      * process 子进程关闭，重置子进程
      * **/
-    public resetServer(server: DevServer) {
+    public resetServer(
+        server: DevServer,
+        type: 'error' | 'exit',
+        error: unknown
+    ) {
+        console.log(`electron start fail...${type}：`, error);
         server.config.inlineConfig.__restartServer = false;
         process.exit(0);
     }
@@ -80,8 +85,14 @@ class ElectronDev {
                 ...this.#config.envConfig
             }
         });
-        this.#childProcess.on('error', this.resetServer.bind(this, server));
-        this.#childProcess.on('exit', this.resetServer.bind(this, server));
+        this.#childProcess.on(
+            'error',
+            this.resetServer.bind(this, server, 'error')
+        );
+        this.#childProcess.on(
+            'exit',
+            this.resetServer.bind(this, server, 'exit')
+        );
 
         this.#childProcess.stderr.pipe(process.stderr);
         this.#childProcess.stdout.on('data', (data) => {

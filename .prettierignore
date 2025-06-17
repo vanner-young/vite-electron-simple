@@ -3,4 +3,3 @@ node_modules
 bundle
 example
 node_modules
-rollup.config.cjs

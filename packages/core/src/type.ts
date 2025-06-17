@@ -8,7 +8,9 @@ export interface BuilderConfig {
         appName?: string;
         needElectron?: boolean;
         tsMainConfigPath?: string;
-        move?: Array<{ from: string; to: string }>;
+        move?:
+            | Array<{ from: string; to: string }>
+            | { from: string; to: string };
         mainProcessEnvPath?: Array<string>;
         env?: IndexUnKnown;
     };

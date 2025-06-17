@@ -1,15 +1,14 @@
 {
     "compilerOptions": {
-        "composite": false,
-        "noEmit": true,
+        "strict": true,
         "target": "ESNext",
         "module": "ESNext",
-        "strict": true,
-        "outDir": "bundle",
-        "moduleResolution": "Bundler",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "isolatedModules": true,
         "allowSyntheticDefaultImports": true,
         "declaration": true,
-        "declarationDir": "bundle",
+        "emitDeclarationOnly": true,
         "paths": {
             "@/*": ["./src/*"]
         }

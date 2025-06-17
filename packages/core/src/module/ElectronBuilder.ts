@@ -3,9 +3,9 @@ import {
     isType,
     copyDirectory,
     findRootParentPath,
-    merge,
     removeFileOrDir
-} from 'mv-common/bundle/common';
+} from 'mv-common';
+import { recursive } from 'merge';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -13,7 +13,12 @@ import Base from '@/module/Base';
 import ViteBuilder from '@/module/ViteBuilder';
 import MainProcess from '@/common/MainProcess';
 import { BuilderConfig, IndexString } from '@/type';
-import { DEFAULT_APP_NAME, DEFAULT_ENV_FILE_NAME } from '@/constance';
+import {
+    DEFAULT_APP_NAME,
+    DEFAULT_ENV_FILE_NAME,
+    PREVIEW_DEFAULT_MODE
+} from '@/constance';
+import { closeRunningProcess } from '@/common';
 
 const Platform = builder.Platform;
 const mainProcess = new MainProcess();
@@ -46,11 +51,20 @@ class ElectronBuilder extends Base {
     async work() {
         const config = await this.getConfigFileContent();
         const appName = config.privateConfig?.appName || DEFAULT_APP_NAME;
+        if (config.privateConfig.needElectron)
+            await closeRunningProcess(appName);
 
-        this.#config = merge.recursive(this.#config, config);
-        this.#config.privateConfig.mainProcessEnvPath =
-            config.privateConfig.mainProcessEnvPath ||
-            this.#config.privateConfig.mainProcessEnvPath;
+        const defaultEnvModePath = [
+            path.resolve(this.rootPath, '.env'),
+            path.resolve(this.rootPath, `.env.${PREVIEW_DEFAULT_MODE}.local`)
+        ];
+        const mainProcessEnvPath = [
+            ...defaultEnvModePath,
+            ...(config.privateConfig?.mainProcessEnvPath || [])
+        ];
+
+        this.#config = recursive(this.#config, config);
+        this.#config.privateConfig.mainProcessEnvPath = mainProcessEnvPath;
         this.getPackageJsonContent();
         this.#publicEnv = {
             APP_NAME: appName,
@@ -81,7 +95,7 @@ class ElectronBuilder extends Base {
      * 写入主进程打包的环境变量文件
      * **/
     writeBuildEnvFile(env: IndexString) {
-        const filePath = path.resolve(this.rootPath, 'electron-builder.env');
+        const filePath = path.resolve(this.rootPath, DEFAULT_ENV_FILE_NAME);
         removeFileOrDir(filePath);
 
         let content = '';

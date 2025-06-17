@@ -1,11 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import dotenv from 'dotenv';
-import {
-    findParentFile,
-    isType,
-    getExistsFilePath
-} from 'mv-common/bundle/common';
+import { findParentFile, isType, getExistsFilePath } from 'mv-common';
 
 import ParserTs from '@/common/ParserTs';
 import { BuilderConfig, IndexString } from '@/type';

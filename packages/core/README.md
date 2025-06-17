@@ -41,7 +41,7 @@ yarn add @vite-electron-simple/core
     ...
     "scripts": {
         "dev": "mv-cli start",      // 开发调试
-        "build": "tsc -b && mv-cli build",  // 生产构建
+        "build": "tsc -b && mv-cli build",  // 生产构建, 构建时，若发现存在进程的
     },
     ...
 ```
@@ -53,7 +53,7 @@ yarn add @vite-electron-simple/core
 
 ...
 import path from 'path';
-import { defineMvConfig } from '@vite-electron-simple/core';  // 可导入辅助函数来实现idea的提醒
+import { defineMvConfig } from '@vite-electron-simple/core';  // 辅助函数导入实现编辑器提示
 
 export default () => defineMvConfig({
         privateConfig: {
@@ -83,7 +83,7 @@ export default () => defineMvConfig({
 
 #### 注意事项
 
-1. 在使用时，前端可通过 OPEN_ELECTRON 参数来判断当前的环境是否时 Electron 客户端环境。
+1. 在使用时，渲染进程中可通过 OPEN_ELECTRON 参数来判断当前的环境是否时 Electron 客户端环境。
 
 ```ts
 if (!import.meta.env.OPEN_ELECTRON) {
@@ -117,4 +117,14 @@ function xxx() {
 }
 xxx();
 // ...TODO
+```
+
+4. 非必要情况，请不要在 builder.config.ts 中添加 mainProcessEnvPath 配置。因为 @vite-electron-simple/core 默认加载 .env 文件，并根据当前的环境，加载 .env.development.local 或 .env.production.local 环境变量文件。
+
+```ts
+// 渲染进程中
+import.meta.env.xxx; // 通过 import.meta.env.xxx 来获取;
+
+// Electron 环境
+process.env.xxx; // 通过 process.env 来获取;
 ```

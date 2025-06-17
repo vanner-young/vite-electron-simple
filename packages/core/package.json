@@ -1,8 +1,9 @@
 {
     "name": "@vite-electron-simple/core",
-    "version": "1.1.7",
+    "version": "1.1.8",
     "description": "一款支持在 vite 构建工具下，实现 react、electron 的开发、构建引入的脚手架，同时支持单一浏览器环境的开发和构建。支持全量的 vite 以及 electron-builder 的全部功能。支持 windows、macos 系统。",
     "main": "./bundle/index.js",
+    "types": "./bundle/types",
     "bin": {
         "mv-cli": "./bundle/index.js"
     },
@@ -29,12 +30,11 @@
     "author": "vanner-young",
     "license": "ISC",
     "devDependencies": {
+        "@vite-electron-simple/plugin": "workspace:*",
         "electron-builder": "^25.1.8",
         "esbuild": "^0.24.0",
-        "mv-common": "^1.1.13",
         "prettier": "3.3.2",
-        "vite": "^6.0.0",
-        "@vite-electron-simple/plugin": "workspace:*"
+        "vite": "^6.0.0"
     },
     "peerDependencies": {
         "electron": ">28.0.0",
@@ -42,5 +42,8 @@
         "esbuild": ">=0.20.0",
         "mv-tsc-watch": "^0.0.3",
         "vite": ">=5.0.0"
+    },
+    "dependencies": {
+        "merge": "^2.1.1"
     }
 }

@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { isType, copyDirectory } from 'mv-common/bundle/common';
+import { isType, copyDirectory, copyFile } from 'mv-common';
 
 import ParserTs from '@/common/ParserTs';
 import { MainBuildProcessConfig, BuilderConfig } from '@/type';
@@ -13,7 +13,7 @@ class MainProcess {
         moveConfig: BuilderConfig['privateConfig']['move'] = [],
         parentConfig: Pick<MainBuildProcessConfig, 'rootPath'>
     ) {
-        if (!isType(moveConfig, 'array')) moveConfig = [moveConfig].flat(1);
+        if (!Array.isArray(moveConfig)) moveConfig = [moveConfig].flat(1);
         for (const item of moveConfig) {
             const { from, to } = item;
             if (!from || !to) {
@@ -22,10 +22,21 @@ class MainProcess {
                 );
                 continue;
             }
-            copyDirectory(
-                path.resolve(parentConfig.rootPath, item.from),
-                path.resolve(parentConfig.rootPath, item.to)
-            );
+            const fromPath = path.resolve(parentConfig.rootPath, item.from),
+                toPath = path.resolve(parentConfig.rootPath, item.to);
+            if (!fs.statSync(fromPath).isDirectory()) {
+                if (fs.statSync(toPath).isDirectory())
+                    console.warn(
+                        'mv-cli warn: move file path config src path is not directory, but dest path not! '
+                    );
+
+                const toDirPath = path.dirname(toPath);
+                if (!fs.existsSync(toDirPath))
+                    fs.mkdirSync(toDirPath, { recursive: true });
+                copyFile(fromPath, toPath);
+            } else {
+                copyDirectory(fromPath, toPath);
+            }
         }
     }
     /**

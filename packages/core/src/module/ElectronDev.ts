@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-import { isType } from 'mv-common/bundle/common';
+import { isType } from 'mv-common';
 import ElectronDevPlugin from '@vite-electron-simple/plugin';
 
 import Base from '@/module/Base';
@@ -35,11 +35,20 @@ class ElectronDev extends Base {
         const config = await this.getConfigFileContent();
         this.getPackageJsonContent();
 
+        const defaultEnvModePath = [
+            path.resolve(this.rootPath, '.env'),
+            path.resolve(this.rootPath, `.env.${DEV_DEFAULT_MODE}.local`)
+        ];
+        const mainProcessEnvPath = [
+            ...defaultEnvModePath, // 模式环境变量文件路径
+            ...(config.privateConfig?.mainProcessEnvPath || []) // 用户自定义变量文件路径
+        ];
+
         const appName = config.privateConfig?.appName || this.#config.appName;
         this.#config = {
             ...this.#config,
             appName,
-            mainProcessEnvPath: config.privateConfig?.mainProcessEnvPath,
+            mainProcessEnvPath: mainProcessEnvPath,
             viteConfig: config.viteConfig,
             needElectron: config.privateConfig?.needElectron,
             tsMainConfigPath: config.privateConfig?.tsMainConfigPath,

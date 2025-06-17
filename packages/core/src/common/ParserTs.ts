@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import esbuild from 'esbuild';
-import { execCommand } from 'mv-common/bundle/common';
+import { execCommand } from 'mv-common';
 
 import { ParserTsProps } from '@/type';
 

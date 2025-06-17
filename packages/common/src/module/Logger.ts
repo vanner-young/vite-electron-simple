@@ -2,7 +2,7 @@ import log from 'electron-log';
 import path from 'node:path';
 import { app } from 'electron';
 
-export interface ElectronLoggerProps {
+export interface LoggerProps {
     appName: string;
     logFilePath: string;
     leave: 'error' | 'warn' | 'info' | 'verbose' | 'debug' | 'silly';
@@ -10,12 +10,12 @@ export interface ElectronLoggerProps {
     format: string;
 }
 
-class ElectronLogger {
-    appName = 'vite-electron-simple';
+class Logger {
+    appName = process.env.APP_NAME || app.getName();
     maxSize = 5 * 1024 * 1024;
     format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}';
     logFilePath = path.resolve(app.getPath('appData'), this.appName, 'logs');
-    leave: ElectronLoggerProps['leave'] = 'info';
+    leave: LoggerProps['leave'] = 'info';
 
     init = false;
 
@@ -24,7 +24,7 @@ class ElectronLogger {
         this.init = true;
     }
 
-    setConfig(props: Partial<ElectronLoggerProps>) {
+    open(props: Partial<LoggerProps> = {}) {
         this.appName = props.appName || this.appName;
         this.leave = props.leave || this.leave;
         this.maxSize = props.maxSize || this.maxSize;
@@ -57,11 +57,10 @@ class ElectronLogger {
         }
 
         if (!this.init) {
-            process.on('unhandledRejection', (error) => {
+            process.addListener('unhandledRejection', (error) => {
                 this.error('Unhandled Rejection:', error);
             });
-
-            process.on('uncaughtException', (error) => {
+            process.addListener('uncaughtException', (error) => {
                 this.error('Uncaught Exception:', error);
             });
         }
@@ -119,7 +118,7 @@ class ElectronLogger {
      * 设置日志级别
      * @param {'error' | 'warn' | 'info' | 'verbose' | 'debug' | 'silly'} level
      */
-    setLevel(level: ElectronLoggerProps['leave']) {
+    setLevel(level: LoggerProps['leave']) {
         log.transports.file.level = level;
         if (log.transports.console) {
             log.transports.console.level = level;
@@ -127,4 +126,4 @@ class ElectronLogger {
     }
 }
 
-export default new ElectronLogger();
+export default new Logger();
