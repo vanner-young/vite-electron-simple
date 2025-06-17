@@ -57,6 +57,7 @@ import { defineMvConfig } from '@vite-electron-simple/core';  // 辅助函数导
 
 export default () => defineMvConfig({
         privateConfig: {
+            appName: xxx, // 非必填，程序的名称，会被注入到环境变量中。通过 process.env.APP_NAME 获取。
             needElectron: true,  // 是否开启electron，当开启时，生产和打包均会添加electron，默认为开启。（非必填）
 
             // 当主进程 electron 的代码使用了 ts，那么该ts对应的tsconfig.json 的路径，反之可不传递此参数（采用绝对路径）（非必填）
@@ -127,4 +128,13 @@ import.meta.env.xxx; // 通过 import.meta.env.xxx 来获取;
 
 // Electron 环境
 process.env.xxx; // 通过 process.env 来获取;
+```
+
+5. 程序默认情况下，会携带以下的环境变量
+
+```ts
+    {
+        APP_NAME: xxx, // 会根据 builder.config.ts 中的 privateConfig.appName 注入。(process.env.APP_NAME)
+        OPEN_ELECTRON: 1 | 0,  // 用于判断当前的环境是不是开启了主进程。在 privateConfig.needElectron: false 的情况下，是不会开启主进程的。(process.env.OPEN_ELECTRON)
+    }
 ```
