@@ -27,7 +27,7 @@ yarn add @vite-electron-simple/core
 -   模板技术栈：Vite、React、Mobx、Typescript。
 -   客户端集成功能：托盘、子服务、系统通知、自定义协议、Schemes、Ipc集成、日志、构建打包。
 -   推荐安装：@vite-electron-simple/common，里面有各类配套的方法及封装的功能，可直接使用。
--   模板地址：https://gitee.com/memory_s/react-electron-template.git
+-   模板地址：https://github.com/vanner-young/react-electron-template.git
 
 #### 使用说明
 
