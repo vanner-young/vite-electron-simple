@@ -1,6 +1,6 @@
 {
     "name": "@vite-electron-simple/core",
-    "version": "1.1.8",
+    "version": "1.1.10",
     "description": "一款支持在 vite 构建工具下，实现 react、electron 的开发、构建引入的脚手架，同时支持单一浏览器环境的开发和构建。支持全量的 vite 以及 electron-builder 的全部功能。支持 windows、macos 系统。",
     "main": "./bundle/index.js",
     "types": "./bundle/types",
