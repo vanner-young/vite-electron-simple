@@ -67,7 +67,7 @@ class ElectronDev {
                       '--project',
                       this.#config.tsConfigPath,
                       '--onSuccess',
-                      `electron ${this.#config.entry}`
+                      `"electron ${this.#config.entry}"`
                   ]
               ]
             : ['electron', [this.#config.entry]];
