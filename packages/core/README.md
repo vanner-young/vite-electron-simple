@@ -104,7 +104,8 @@ loadProductionEnv();
 // ...TODO
 ```
 
-3. 在 builder.config.ts 文件中，不要引入第三方的文件，因为 esbuild 在处理时，只会对当前文件进行打包，而不会处理引入的文件。
+3. 在 builder.config.ts 文件中，不要引入第三方的文件，因为 esbuild 在处理时，只会对 config 文件进行打包，而不会处理引入的文件。
+   (为什么当前版本只能对config文件进行打包：因为 esbuild 在打包时，如果开启了bundle构建的话，会将所有的第三方依赖全部打包为一个文件，包括 node_modules 中的库。由于这些库的代码内容是多样性的，虽然可以使用 external 进行 node_module 的排除，但是对 vite 之后的计划可能会将esbuild 进行排除。因此后续的计划是，等vite彻底替换esbuild后，将esbuild替换为rolldown 进行构建，彻底解决此问题。)
 
 ```ts
 // builder.config.ts
