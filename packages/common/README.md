@@ -37,8 +37,8 @@ import { ... } from '@vite-electron-simple/common';
 import {
     getResourceStatic,
     showTopApplication,
-    loadProductionEnv
-} from '@vite-electron-simple/common';
+    loadProductionEnv,
+} from "@vite-electron-simple/common";
 
 // 1. getResourceStatic
 getResourceStatic(); // 返回打包后的资源路径，如： /xxx/xxx/resources
@@ -54,47 +54,47 @@ showTopApplication(); // 程序置顶
 2. 客户端日志模块, 属于 electron-log 模块的封装。模块在使用时，会自动记录程序中未能捕获的异常日志打印。
 
 ```ts
-import { Logger } from '@vite-electron-simple/common';
+import { Logger } from "@vite-electron-simple/common";
 
 // 初始化日志功能, 日志会放在 %appdata%/{process.env.appName}/logs
-Logger.open({ appName: process.env.appName || 'vite-electron-simple' });
+Logger.open({ appName: process.env.appName || "vite-electron-simple" });
 
-Logger.info('....');
-Logger.warn('....');
-Logger.error('....');
+Logger.info("....");
+Logger.warn("....");
+Logger.error("....");
 
 // 设置日志级别, 也可不设置，采用默认选项
-Logger.setLevel('error' | 'warn' | 'info' | 'verbose' | 'debug' | 'silly');
+Logger.setLevel("error" | "warn" | "info" | "verbose" | "debug" | "silly");
 ```
 
 3. Electron 自定义协议模块
 
 ```ts
-import { Protocol } from '@vite-electron-simple/common';
+import { Protocol } from "@vite-electron-simple/common";
 
 // 1. 基本用法
 
 // cwd: 在程序打包后，因为packaged环境中， Protocol 的基础路径应为electron的启动文件路径(main.js)，但是 Protocol 无法考虑到所有的情况去兼容获取cwd路径。因此在某些情况下，需要传递 cwd 路径。非必填选项，默认值为: path.resolve(app.getAppPath(), "dist_electron")
 // name: 非必填选项，设置后与 setProtocolName 效果一样
-ProtocolRegister.registerProtocol({ cwd: __dirname, name: 'xxx' }); // 注册自定义协议
+ProtocolRegister.registerProtocol({ cwd: __dirname, name: "xxx" }); // 注册自定义协议
 
 // 2. 自定义协议的名称，默认自定义协议的名称为: app
-Protocol.setProtocolName('xx');
+Protocol.setProtocolName("xx");
 
 // 3. 自定义cwd路径
-Protocol.setProtocolName('xx');
+Protocol.setProtocolName("xx");
 
 // 4. 自定义协议拦截时，针对特定文件的content-type 设置
-Protocol.addFileTypeMap('.txt', 'text/plain');
+Protocol.addFileTypeMap(".txt", "text/plain");
 
 // 5. 对特定后缀的文件，读取是，需要采用 utf8 字符编码。
-Protocol.addUtfCodingValue('.txt');
+Protocol.addUtfCodingValue(".txt");
 ```
 
 4. Electron 程序单例
 
 ```ts
-import { SingleAppLock } from '@vite-electron-simple/common';
+import { SingleAppLock } from "@vite-electron-simple/common";
 
 SingleAppLock(); // 直接调用即可
 ```
@@ -102,25 +102,25 @@ SingleAppLock(); // 直接调用即可
 5. AwakeApp 唤醒协议
 
 ```ts
-import { AwakeApp } from '@vite-electron-simple/common';
+import { AwakeApp } from "@vite-electron-simple/common";
 
 // 1. 基础用法
-AwakeApp.start('xxx'); // 协议注册, 在注册时，也可以传递协议的名称, 本质上和 setSchemaName 一样
+AwakeApp.start("xxx"); // 协议注册, 在注册时，也可以传递协议的名称, 本质上和 setSchemaName 一样
 
 // 2. 设置 协议名称，默认协议名称为: app.getName() - (当前程序的名称)
-AwakeApp.setSchemaName('xxx');
+AwakeApp.setSchemaName("xxx");
 ```
 
 6. AwakeChildrenProcess 唤醒第三方子应用
 
 ```ts
-import { AwakeChildrenProcess } from '@vite-electron-simple/common';
+import { AwakeChildrenProcess } from "@vite-electron-simple/common";
 
 // 1. 基础用法
 AwakeChildrenProcess.run(appPath, appName, (spawnOptions = {}));
 
 // 2. 父子进程通信
 const childrenProcess = AwakeChildrenProcess.childrenProcess;
-childrenProcess.send('xxx'); // 向子进程发消息
-childrenProcess.on('message', (data) => console.log(data)); // 监听子进程发送消息
+childrenProcess.send("xxx"); // 向子进程发消息
+childrenProcess.on("message", (data) => console.log(data)); // 监听子进程发送消息
 ```

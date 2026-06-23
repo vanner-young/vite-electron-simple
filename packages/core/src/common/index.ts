@@ -1,5 +1,5 @@
-import { isActiveProcessByName, killProcessName } from 'mv-common';
-import { IndexUnKnown, IndexString } from '@/type';
+import { isActiveProcessByName, killProcessName } from "mv-common";
+import { IndexUnKnown, IndexString } from "@/type";
 
 export const formateEnv = (env: IndexUnKnown): IndexString => {
     const envLocal: IndexString = {};

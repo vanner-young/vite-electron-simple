@@ -1,20 +1,20 @@
-import path from 'node:path';
+import { resolve } from "node:path";
 
-import { build } from 'vite';
-import { formateEnv } from '@/common';
-import { DEFAULT_VIEW_OUTPUT } from '@/constance';
-import { BuilderConfig, IndexString } from '@/type';
+import { build } from "vite";
+import { formateEnv } from "@/common";
+import { DEFAULT_VIEW_OUTPUT } from "@/constance";
+import { BuilderConfig, IndexString } from "@/type";
 
 class ViteBuilder {
     /**
      * 获输出路径
      * **/
     getOutputPath(outPath: string | undefined, rootPath: string) {
-        if (!outPath) return path.resolve(rootPath, DEFAULT_VIEW_OUTPUT);
+        if (!outPath) return resolve(rootPath, DEFAULT_VIEW_OUTPUT);
 
         // 判断用户传递的路径字符串来匹配
         if (outPath.includes(rootPath)) return outPath;
-        return path.resolve(rootPath, outPath);
+        return resolve(rootPath, outPath);
     }
 
     /**
@@ -23,7 +23,7 @@ class ViteBuilder {
     async work(
         config: BuilderConfig,
         rootPath: string,
-        publicEnv: IndexString
+        publicEnv: IndexString,
     ) {
         const { viteConfig } = config;
 
@@ -31,7 +31,7 @@ class ViteBuilder {
         viteConfig.build = viteConfig.build || {};
         viteConfig.build.outDir = this.getOutputPath(
             viteConfig.build?.outDir,
-            rootPath
+            rootPath,
         );
 
         // 处理环境变量
@@ -39,8 +39,8 @@ class ViteBuilder {
 
         await build(viteConfig);
         console.log(
-            'view process build success... out dir is:',
-            viteConfig.build.outDir
+            "view process build success... out dir is:",
+            viteConfig.build.outDir,
         );
         return viteConfig;
     }

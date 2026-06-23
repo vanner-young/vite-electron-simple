@@ -1,36 +1,37 @@
 {
-    "name": "@vite-electron-simple/common",
-    "version": "1.1.7",
-    "description": "一款配套 @vite-electron-simple/core 库从而封装的一套工具类库，里面包含了一些配套使用的模块。",
-    "main": "./bundle/index.js",
-    "types": "./bundle/types",
-    "scripts": {
-        "build": "rollup --config rollup.config.cjs",
-        "prepublishOnly": "pnpm build"
-    },
-    "author": "vanner-young",
-    "license": "ISC",
-    "packageManager": "pnpm@10.10.0",
-    "files": [
-        "bundle/**/*",
-        "README.md",
-        "package.json"
-    ],
-    "keywords": [
-        "@vite-electron-simple/common",
-        "common",
-        "electron",
-        "vite"
-    ],
-    "publishConfig": {
-        "access": "public",
-        "registry": "https://registry.npmjs.org/"
-    },
-    "peerDependencies": {
-        "electron": ">28.0.0"
-    },
-    "dependencies": {
-        "dotenv": "^16.5.0",
-        "electron-log": "^5.4.0"
-    }
+  "name": "@vite-electron-simple/common",
+  "version": "2.0.0",
+  "description": "一款配套 @vite-electron-simple/core 库从而封装的一套工具类库，里面包含了一些配套使用的模块。",
+  "keywords": [
+    "@vite-electron-simple/common",
+    "common",
+    "electron",
+    "vite"
+  ],
+  "license": "ISC",
+  "author": "vanner-young",
+  "files": [
+    "bundle/**/*",
+    "README.md",
+    "package.json"
+  ],
+  "main": "./bundle/index.js",
+  "types": "./bundle/types",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "build": "pnpm lint && rolldown -c rolldown.config.ts",
+    "lint": "tsc",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "electron-log": "^5.4.0"
+  },
+  "peerDependencies": {
+    "electron": ">=42.0.0"
+  },
+  "packageManager": "pnpm@10.10.0"
 }

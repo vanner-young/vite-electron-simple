@@ -1,5 +1,5 @@
-import path from 'node:path';
-import { app } from 'electron';
+import path from "node:path";
+import { app } from "electron";
 
 class AwakeApp {
     #schema = process.env.APP_NAME || app.getName();
@@ -19,7 +19,7 @@ class AwakeApp {
         app.whenReady().then(() => {
             this.regisSchema();
         });
-        app.addListener('will-quit', () => {
+        app.addListener("will-quit", () => {
             if (!app.isPackaged) this.removeSchema();
         });
     }
@@ -27,7 +27,7 @@ class AwakeApp {
     public regisSchema() {
         app.setAsDefaultProtocolClient(
             this.#schema,
-            ...(this.devArgs as Array<string>)
+            ...(this.devArgs as Array<string>),
         );
         this.listener();
     }
@@ -35,27 +35,27 @@ class AwakeApp {
     public removeSchema() {
         app.removeAsDefaultProtocolClient(
             this.#schema,
-            ...(this.devArgs as Array<string>)
+            ...(this.devArgs as Array<string>),
         );
     }
 
     public handleArgv(argv: Array<string>) {
         const offset = app.isPackaged ? 1 : 2;
         const url = argv.find(
-            (arg, i) => i >= offset && arg.startsWith(this.#schema)
+            (arg, i) => i >= offset && arg.startsWith(this.#schema),
         );
         if (url) return new URL(url);
     }
 
     public listener() {
-        if (process.platform === 'win32') {
-            app.on('second-instance', (_, argv) => {
+        if (process.platform === "win32") {
+            app.on("second-instance", (_, argv) => {
                 const url = this.handleArgv(argv);
-                console.log('params is:', url?.searchParams);
+                console.log("params is:", url?.searchParams);
             });
         } else {
-            app.on('open-url', (_, argv) => {
-                console.log('url is:', argv);
+            app.on("open-url", (_, argv) => {
+                console.log("url is:", argv);
             });
         }
     }

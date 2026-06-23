@@ -24,10 +24,10 @@ yarn add @vite-electron-simple/core
 
 本项目有一套标准模板，为了提升效率，可拉取此模板，在此模板上进行业务开发。
 
--   模板技术栈：Vite、React、Mobx、Typescript。
--   客户端集成功能：托盘、子服务、系统通知、自定义协议、Schemes、Ipc集成、日志、构建打包。
--   推荐安装：@vite-electron-simple/common，里面有各类配套的方法及封装的功能，可直接使用。
--   模板地址：https://github.com/vanner-young/react-electron-template.git
+- 模板技术栈：Vite、React、Mobx、Typescript。
+- 客户端集成功能：托盘、子服务、系统通知、自定义协议、Schemes、Ipc集成、日志、构建打包。
+- 推荐安装：@vite-electron-simple/common，里面有各类配套的方法及封装的功能，可直接使用。
+- 模板地址：https://github.com/vanner-young/react-electron-template.git
 
 #### 使用说明
 
@@ -98,7 +98,7 @@ if (!import.meta.env.OPEN_ELECTRON) {
 // npm install @vite-electron-simple/common
 
 // 主进程入口文件: app.js|app.ts
-import { loadProductionEnv } from '@vite-electron-simple/common';
+import { loadProductionEnv } from "@vite-electron-simple/common";
 loadProductionEnv();
 
 // ...TODO
@@ -110,7 +110,7 @@ loadProductionEnv();
 ```ts
 // builder.config.ts
 
-import xxx from './xxx'; // 错误
+import xxx from "./xxx"; // 错误
 // ...TODO
 
 // 应修改为以下方式:

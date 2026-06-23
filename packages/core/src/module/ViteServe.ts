@@ -1,12 +1,12 @@
-import { createServer } from 'vite';
-import { formateEnv } from '@/common';
-import { ElectronServeProps, IndexUnKnown } from '@/type';
+import { createServer } from "vite";
+import { formateEnv } from "@/common";
+import { ElectronServeProps, IndexUnKnown } from "@/type";
 
 class ViteBuilder {
-    async work(config: ElectronServeProps['viteConfig'], env: IndexUnKnown) {
+    async work(config: ElectronServeProps["viteConfig"], env: IndexUnKnown) {
         const server = await createServer({
             ...config,
-            define: formateEnv(Object.assign(config.define || {}, env))
+            define: formateEnv(Object.assign(config.define || {}, env)),
         });
 
         await server.listen();

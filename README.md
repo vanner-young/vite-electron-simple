@@ -6,12 +6,12 @@
 
 当前库有以下几个模块：
 
--   @vite-electron-simple/core
-    -   核心库：支撑 electron 主进程和 web 渲染进程的启动和构建任务。
--   @vite-electron-simple/common
-    -   扩展库：在开发主进程的过程中，封装的一些工具类库，里面包含了一些配套使用的模块。（如：日志、环境变量、唤醒协议、启动第三方程序等）
--   @vite-electron-simple/plugin
-    -   开发模式下，启动主进程的 Vite 插件。
+- @vite-electron-simple/core
+    - 核心库：支撑 electron 主进程和 web 渲染进程的启动和构建任务。
+- @vite-electron-simple/common
+    - 扩展库：在开发主进程的过程中，封装的一些工具类库，里面包含了一些配套使用的模块。（如：日志、环境变量、唤醒协议、启动第三方程序等）
+- @vite-electron-simple/plugin
+    - 开发模式下，启动主进程的 Vite 插件。
 
 ## 文档地址
 

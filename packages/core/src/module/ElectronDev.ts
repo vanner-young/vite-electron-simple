@@ -1,22 +1,22 @@
-import path from 'node:path';
+import { resolve } from "node:path";
 
-import { isType } from 'mv-common';
-import ElectronDevPlugin from '@vite-electron-simple/plugin';
+import { isType } from "mv-common";
+import ElectronDevPlugin from "@vite-electron-simple/plugin";
 
-import Base from '@/module/Base';
-import MainProcess from '@/common/MainProcess';
-import ViteServe from '@/module/ViteServe';
-import { DEV_DEFAULT_MODE, DEFAULT_APP_NAME } from '@/constance';
-import { ElectronServeProps, BuilderConfig } from '@/type';
+import Base from "@/module/Base";
+import MainProcess from "@/common/MainProcess";
+import ViteServe from "@/module/ViteServe";
+import { DEV_DEFAULT_MODE, DEFAULT_APP_NAME } from "@/constance";
+import { ElectronServeProps, BuilderConfig } from "@/type";
 
 class ElectronDev extends Base {
     #config: ElectronServeProps = {
         appName: DEFAULT_APP_NAME,
         viteConfig: {},
         needElectron: false,
-        tsMainConfigPath: '',
+        tsMainConfigPath: "",
         mainProcessEnvPath: [],
-        publicEnv: {}
+        publicEnv: {},
     };
 
     /**
@@ -36,12 +36,12 @@ class ElectronDev extends Base {
         this.getPackageJsonContent();
 
         const defaultEnvModePath = [
-            path.resolve(this.rootPath, '.env'),
-            path.resolve(this.rootPath, `.env.${DEV_DEFAULT_MODE}.local`)
+            resolve(this.rootPath, ".env"),
+            resolve(this.rootPath, `.env.${DEV_DEFAULT_MODE}.local`),
         ];
         const mainProcessEnvPath = [
             ...defaultEnvModePath, // 模式环境变量文件路径
-            ...(config.privateConfig?.mainProcessEnvPath || []) // 用户自定义变量文件路径
+            ...(config.privateConfig?.mainProcessEnvPath || []), // 用户自定义变量文件路径
         ];
 
         const appName = config.privateConfig?.appName || this.#config.appName;
@@ -54,14 +54,12 @@ class ElectronDev extends Base {
             tsMainConfigPath: config.privateConfig?.tsMainConfigPath,
             publicEnv: {
                 APP_NAME: appName,
-                OPEN_ELECTRON: Number(config.privateConfig?.needElectron),
-                ...(config.privateConfig?.env || this.#config.publicEnv)
-            }
+            },
         };
 
-        if (!isType(this.#config.viteConfig, 'object'))
+        if (!isType(this.#config.viteConfig, "object"))
             throw new Error(
-                'server config file and package.json export content is not object...'
+                "server config file and package.json export content is not object...",
             );
 
         await this.mergeConfig(config);
@@ -73,7 +71,7 @@ class ElectronDev extends Base {
      * **/
     public async start() {
         ViteServe.work(this.#config.viteConfig, {
-            ...this.#config.publicEnv
+            ...this.#config.publicEnv,
         });
     }
 
@@ -88,20 +86,20 @@ class ElectronDev extends Base {
 
         const { needElectron } = this.#config;
         if (needElectron) {
-            const mainProcessInput = path.resolve(
+            const mainProcessInput = resolve(
                 this.rootPath,
-                this.packageJson.main
+                this.packageJson.main,
             );
 
             // 处理主进程逻辑
             await new MainProcess().handler({
                 rootPath: this.rootPath,
-                config
+                config,
             });
 
-            await this.verifyInputDir('', mainProcessInput);
+            await this.verifyInputDir("", mainProcessInput);
             const envConfig = await this.gteEnvConfig(
-                this.#config.mainProcessEnvPath
+                this.#config.mainProcessEnvPath,
             );
 
             this.#config.viteConfig.plugins.push(
@@ -109,8 +107,8 @@ class ElectronDev extends Base {
                 (ElectronDevPlugin as any)({
                     entry: mainProcessInput,
                     tsConfigPath: this.#config.tsMainConfigPath,
-                    envConfig: { ...envConfig, ...this.#config.publicEnv }
-                })
+                    envConfig: { ...envConfig, ...this.#config.publicEnv },
+                }),
             );
         }
     }

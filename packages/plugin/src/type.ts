@@ -1,5 +1,5 @@
-import type { ViteDevServer } from 'vite';
-export type { PluginOption, Plugin } from 'vite';
+import type { ViteDevServer } from "vite";
+export type { PluginOption, Plugin } from "vite";
 
 export interface IndexStringType {
     [index: string]: unknown;

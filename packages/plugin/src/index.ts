@@ -1,15 +1,14 @@
-import fs from 'node:fs';
-import { isType } from 'mv-common/pkg/m.common';
-import { getSystemInfo } from 'mv-common/pkg/node/m.process';
-import { findParentFile } from 'mv-common/pkg/node/m.file';
-import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
-import { DevServer, ElectronDevProps } from './type';
+import { existsSync } from "node:fs";
+import { findParentFile, getSystemInfo, isType } from "mv-common";
+import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
+
+import { DevServer, ElectronDevProps } from "./type";
 
 class ElectronDev {
     #config = {
-        entry: '',
-        tsConfigPath: '',
-        envConfig: {}
+        entry: "",
+        tsConfigPath: "",
+        envConfig: {},
     };
     #childProcess: ChildProcessWithoutNullStreams | null = null;
 
@@ -17,19 +16,19 @@ class ElectronDev {
         this.#config = { ...this.#config, ...config };
         const { entry, tsConfigPath, envConfig } = this.#config;
 
-        if (!entry || !fs.existsSync(entry))
+        if (!entry || !existsSync(entry))
             throw new Error(
-                'vite-plugin-electron-dev plugin: entry path is not exists'
+                "vite-plugin-electron-dev plugin: entry path is not exists",
             );
 
-        if (tsConfigPath && !fs.existsSync(tsConfigPath))
+        if (tsConfigPath && !existsSync(tsConfigPath))
             throw new Error(
-                'vite-plugin-electron-dev plugin: tsConfigPath path is not exists'
+                "vite-plugin-electron-dev plugin: tsConfigPath path is not exists",
             );
 
-        if (!isType(envConfig, 'object'))
+        if (!isType(envConfig, "object"))
             throw new Error(
-                'vite-plugin-electron-dev plugin: env config must to be object...'
+                "vite-plugin-electron-dev plugin: env config must to be object...",
             );
     }
 
@@ -40,7 +39,7 @@ class ElectronDev {
         const { NODE_ENV } = this.#config.envConfig as {
             NODE_ENV: string;
         };
-        return NODE_ENV === 'development';
+        return NODE_ENV === "development";
     }
 
     /**
@@ -48,8 +47,8 @@ class ElectronDev {
      * **/
     public resetServer(
         server: DevServer,
-        type: 'error' | 'exit',
-        error: unknown
+        type: "error" | "exit",
+        error: unknown,
     ) {
         console.log(`electron start fail...${type}：`, error);
         server.config.inlineConfig.__restartServer = false;
@@ -62,42 +61,42 @@ class ElectronDev {
     public async startElectronProcess(server: DevServer) {
         const command = this.#config.tsConfigPath
             ? [
-                  'mv-tsc-watch',
+                  "mv-tsc-watch",
                   [
-                      '--project',
+                      "--project",
                       this.#config.tsConfigPath,
-                      '--onSuccess',
-                      `"electron ${this.#config.entry}"`
-                  ]
+                      "--onSuccess",
+                      `"electron ${this.#config.entry}"`,
+                  ],
               ]
-            : ['electron', [this.#config.entry]];
+            : ["electron", [this.#config.entry]];
 
         const rootPath = await findParentFile(
             this.#config.entry,
-            'package.json'
+            "package.json",
         );
         this.#childProcess = spawn(...(command as [string, Array<string>]), {
             shell: getSystemInfo().isWindow,
             cwd: rootPath,
             env: {
                 ...process.env,
-                ELECTRON_URL: server.resolvedUrls?.local?.[0] || '[:::]',
-                ...this.#config.envConfig
-            }
+                ELECTRON_URL: server.resolvedUrls?.local?.[0] || "[:::]",
+                ...this.#config.envConfig,
+            },
         });
         this.#childProcess.on(
-            'error',
-            this.resetServer.bind(this, server, 'error')
+            "error",
+            this.resetServer.bind(this, server, "error"),
         );
         this.#childProcess.on(
-            'exit',
-            this.resetServer.bind(this, server, 'exit')
+            "exit",
+            this.resetServer.bind(this, server, "exit"),
         );
 
         this.#childProcess.stderr.pipe(process.stderr);
-        this.#childProcess.stdout.on('data', (data) => {
+        this.#childProcess.stdout.on("data", (data) => {
             const consoleValue = data.toString();
-            if (consoleValue.startsWith('mv-tsc-watch:close')) {
+            if (consoleValue.startsWith("mv-tsc-watch:close")) {
                 process.exit(0);
             } else {
                 console.log(consoleValue);
@@ -120,7 +119,7 @@ class ElectronDev {
     public async configResolvedHooks() {
         this.#config.envConfig = {
             ...this.#config.envConfig,
-            NODE_ENV: process.env.NODE_ENV
+            NODE_ENV: process.env.NODE_ENV,
         };
     }
 
@@ -143,9 +142,9 @@ class ElectronDev {
 export default function (props: ElectronDevProps) {
     const electronDev = new ElectronDev(props);
     return {
-        name: 'vite-plugin-start-electron',
+        name: "vite-plugin-start-electron",
         configResolved: () => electronDev.configResolvedHooks(),
         configureServer: (server: DevServer) =>
-            electronDev.devServerHooks(server)
+            electronDev.devServerHooks(server),
     };
 }

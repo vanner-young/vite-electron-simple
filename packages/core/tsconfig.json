@@ -1,18 +1,21 @@
 {
-    "compilerOptions": {
-        "strict": true,
-        "target": "ESNext",
-        "module": "ESNext",
-        "moduleResolution": "node",
-        "allowSyntheticDefaultImports": true,
-        "declaration": true,
-        "isolatedModules": true,
-        "esModuleInterop": true,
-        "emitDeclarationOnly": true,
-        "paths": {
-            "@/*": ["./src/*"]
-        }
-    },
-    "include": ["src/**/*"],
-    "exclude": ["node_modules"]
+  "compilerOptions": {
+    "strict": true,
+    "target": "esnext",
+    "module": "ESNext",
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "rootDir": "./src",
+    "emitDeclarationOnly": true,
+    "declarationDir": "./bundle/types",
+    "skipLibCheck": true,
+    "noEmitOnError": true, // 遇到检测错误时不生成自述文件
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/node_modules/**"]
 }

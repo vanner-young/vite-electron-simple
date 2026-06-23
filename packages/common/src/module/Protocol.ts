@@ -1,24 +1,24 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { protocol, net, app } from 'electron';
+import fs from "node:fs";
+import path from "node:path";
+import { protocol, net, app } from "electron";
 
 class RegisterProtocol {
-    #basePath: string = path.resolve(app.getAppPath(), 'dist_electron');
-    #protocolName: string = 'app';
+    #basePath: string = path.resolve(app.getAppPath(), "dist_electron");
+    #protocolName: string = "app";
     #fileTypeMap: { [key: string]: string } = {
-        '.js': 'text/javascript',
-        '.mjs': 'text/javascript',
-        '.html': 'text/html',
-        '.htm': 'text/html',
-        '.json': 'application/json',
-        '.css': 'text/css',
-        '.svg': 'application/svg+xml',
-        '.ico': 'image/vnd.microsoft.icon',
-        '.png': 'image/png',
-        '.jpg': 'image/jpeg',
-        '.map': 'text/plain'
+        ".js": "text/javascript",
+        ".mjs": "text/javascript",
+        ".html": "text/html",
+        ".htm": "text/html",
+        ".json": "application/json",
+        ".css": "text/css",
+        ".svg": "application/svg+xml",
+        ".ico": "image/vnd.microsoft.icon",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".map": "text/plain",
     };
-    #utfCodingList = ['.js', '.mjs', '.cjs', '.json', '.html', '.htm'];
+    #utfCodingList = [".js", ".mjs", ".cjs", ".json", ".html", ".htm"];
 
     public setProtocolName(name: string) {
         if (!name.trim() || this.#protocolName === name) return;
@@ -43,19 +43,19 @@ class RegisterProtocol {
 
     public charsetFile(ext: string): BufferEncoding | undefined {
         if (this.#utfCodingList.includes(ext)) {
-            return 'utf-8';
+            return "utf-8";
         }
     }
 
     public registerProtocol({
         cwd,
-        name
+        name,
     }: {
         cwd?: string;
         name?: string;
     } = {}): void {
-        this.setBasePath(cwd || '');
-        this.setProtocolName(name || '');
+        this.setBasePath(cwd || "");
+        this.setProtocolName(name || "");
         protocol.registerSchemesAsPrivileged([
             {
                 scheme: this.#protocolName,
@@ -63,9 +63,9 @@ class RegisterProtocol {
                     standard: true,
                     secure: true,
                     supportFetchAPI: true,
-                    allowServiceWorkers: true
-                }
-            }
+                    allowServiceWorkers: true,
+                },
+            },
         ]);
         app.whenReady().then(() => this.protocolHandler());
     }
@@ -73,18 +73,18 @@ class RegisterProtocol {
     public protocolHandler(): void {
         protocol.handle(this.#protocolName, (req: GlobalRequest) => {
             const { host, pathname } = new URL(req.url);
-            if (host === '.') {
+            if (host === ".") {
                 const filePath = path.normalize(`${host}${pathname}`);
                 try {
                     const fileContent = fs.readFileSync(
                         path.resolve(this.#basePath, filePath),
-                        { encoding: this.charsetFile(path.extname(filePath)) }
+                        { encoding: this.charsetFile(path.extname(filePath)) },
                     );
                     return new Response(fileContent, {
                         headers: {
-                            'content-type':
-                                this.#fileTypeMap[path.extname(filePath)]
-                        }
+                            "content-type":
+                                this.#fileTypeMap[path.extname(filePath)],
+                        },
                     });
                 } catch (e) {
                     return new Response(
@@ -93,8 +93,8 @@ class RegisterProtocol {
                             (e as unknown as { message: string }).message
                         }`,
                         {
-                            status: 400
-                        }
+                            status: 400,
+                        },
                     );
                 }
             }

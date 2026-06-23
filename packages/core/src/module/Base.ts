@@ -1,15 +1,15 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import dotenv from 'dotenv';
-import { findParentFile, isType, getExistsFilePath } from 'mv-common';
+import fs from "node:fs";
+import path from "node:path";
+import dotenv from "dotenv";
+import { findParentFile, isType, getExistsFilePath } from "mv-common";
 
-import ParserTs from '@/common/ParserTs';
-import { BuilderConfig, IndexString } from '@/type';
+import ParserTs from "@/common/ParserTs";
+import { BuilderConfig, IndexString } from "@/type";
 import {
     PROJECT_SIGN_NAME,
     ENTRY_CONFIG_FILE_NAME,
-    DEPENDENCIES_MODULE
-} from '@/constance';
+    DEPENDENCIES_MODULE,
+} from "@/constance";
 
 export default class Base {
     // 默认程序运行根目录
@@ -20,15 +20,15 @@ export default class Base {
      * 处理主进程环境变量文件，将环境变量文件内容转换为对象
      * **/
     public async gteEnvConfig(
-        envPath: Array<string> = []
+        envPath: Array<string> = [],
     ): Promise<IndexString> {
         let mainProcessEnvPath = [].slice.call(envPath);
         const envConfig = {};
         if (!Array.isArray(mainProcessEnvPath))
-            throw new Error('privateConfig.env type must be Array...');
+            throw new Error("privateConfig.env type must be Array...");
 
         mainProcessEnvPath = mainProcessEnvPath.filter((item) =>
-            isType(item, 'string')
+            isType(item, "string"),
         );
         if (!mainProcessEnvPath.length) return envConfig;
 
@@ -37,7 +37,7 @@ export default class Base {
             if (fs.existsSync(envPath)) {
                 Object.assign(
                     envConfig,
-                    dotenv.parse(fs.readFileSync(envPath))
+                    dotenv.parse(fs.readFileSync(envPath)),
                 );
             }
         }
@@ -59,7 +59,7 @@ export default class Base {
         const rootPath = await findParentFile(this.rootPath, PROJECT_SIGN_NAME);
         if (!rootPath || !fs.existsSync(rootPath))
             throw new Error(
-                `${rootPath} 不是一个有效的项目路径！请更换目录后重试！`
+                `${rootPath} 不是一个有效的项目路径！请更换目录后重试！`,
             );
         this.rootPath = rootPath;
         this.verifyNeedModule(DEPENDENCIES_MODULE);
@@ -71,7 +71,7 @@ export default class Base {
     getPackageJsonContent() {
         const packageJsonPath = path.resolve(this.rootPath, PROJECT_SIGN_NAME);
         this.packageJson = JSON.parse(
-            fs.readFileSync(packageJsonPath) as unknown as string
+            fs.readFileSync(packageJsonPath) as unknown as string,
         );
     }
     /**
@@ -82,7 +82,7 @@ export default class Base {
             (viewPath && !fs.existsSync(viewPath)) ||
             (mainPath && !fs.existsSync(mainPath))
         )
-            throw new Error('view or main package output dir get fail...');
+            throw new Error("view or main package output dir get fail...");
     }
     /**
      * 获取构建文件的内容
@@ -90,25 +90,26 @@ export default class Base {
     async getConfigFileContent(): Promise<BuilderConfig> {
         const configFilePath = await getExistsFilePath(
             this.rootPath,
-            ENTRY_CONFIG_FILE_NAME
+            ENTRY_CONFIG_FILE_NAME,
         );
         if (!configFilePath)
-            throw new Error('config file path is not exists...');
+            throw new Error("config file path is not exists...");
 
-        // 转换文件
+        // 转换配置文件 builder.config.ts
         const tempFilePath = await ParserTs.transformCode(
             this.rootPath,
-            configFilePath
+            configFilePath,
         );
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+
+        // 加载配置文件，并立刻将其删除
         const configHandler = require(tempFilePath).default;
-
         fs.unlinkSync(tempFilePath);
-        const types = ['function', 'asyncfunction', 'object'];
-        if (!isType(configHandler, types))
-            throw new Error('build config file export invalid type...');
 
-        if (isType(configHandler, 'object')) return configHandler;
+        const types = ["function", "asyncfunction", "object"];
+        if (!isType(configHandler, types))
+            throw new Error("build config file export invalid type...");
+
+        if (isType(configHandler, "object")) return configHandler;
         return await configHandler();
     }
 }

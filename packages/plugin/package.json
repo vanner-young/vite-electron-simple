@@ -1,36 +1,38 @@
 {
-    "name": "@vite-electron-simple/plugin",
-    "version": "1.1.4",
-    "main": "./bundle/index.cjs",
-    "module": "./bundle/index.mjs",
-    "types": "./bundle/index.d.ts",
-    "author": "vanner-young",
-    "license": "ISC",
-    "scripts": {
-        "prepublishOnly": "pnpm build",
-        "build": "rollup --config rollup.config.cjs"
-    },
-    "publishConfig": {
-        "access": "public",
-        "registry": "https://registry.npmjs.org/"
-    },
-    "files": [
-        "bundle",
-        "package.json",
-        "README.md"
-    ],
-    "keywords": [
-        "electron",
-        "plugin",
-        "development",
-        "es-module",
-        "commonjs",
-        "vite",
-        "vite-plugin"
-    ],
-    "devDependencies": {
-        "mv-tsc-watch": "^0.0.2",
-        "prettier": "3.3.2",
-        "vite": "^5.4.11"
-    }
+  "name": "@vite-electron-simple/plugin",
+  "version": "2.0.0",
+  "keywords": [
+    "commonjs",
+    "development",
+    "electron",
+    "es-module",
+    "plugin",
+    "vite",
+    "vite-plugin"
+  ],
+  "license": "ISC",
+  "author": "vanner-young",
+  "files": [
+    "bundle",
+    "package.json",
+    "README.md"
+  ],
+  "main": "./bundle/index.js",
+  "types": "./bundle/types",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "lint": "tsc",
+    "build": "pnpm lint && rolldown -c rolldown.config.ts",
+    "prepublishOnly": "pnpm build"
+  },
+  "devDependencies": {
+    "mv-tsc-watch": "^0.0.2",
+    "vite": "^8.0.16"
+  },
+  "peerDependencies": {
+    "vite": ">=8.0.0"
+  }
 }

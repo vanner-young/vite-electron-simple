@@ -1,5 +1,5 @@
-import path from 'node:path';
-import type { BrowserWindow } from 'electron';
+import path from "node:path";
+import type { BrowserWindow } from "electron";
 
 /**
  * 获取打包后的resource目录中的资源

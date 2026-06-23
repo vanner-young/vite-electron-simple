@@ -1,11 +1,11 @@
-import log from 'electron-log';
-import path from 'node:path';
-import { app } from 'electron';
+import log from "electron-log";
+import path from "node:path";
+import { app } from "electron";
 
 export interface LoggerProps {
     appName: string;
     logFilePath: string;
-    leave: 'error' | 'warn' | 'info' | 'verbose' | 'debug' | 'silly';
+    leave: "error" | "warn" | "info" | "verbose" | "debug" | "silly";
     maxSize: number;
     format: string;
 }
@@ -13,9 +13,9 @@ export interface LoggerProps {
 class Logger {
     appName = process.env.APP_NAME || app.getName();
     maxSize = 5 * 1024 * 1024;
-    format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}';
-    logFilePath = path.resolve(app.getPath('appData'), this.appName, 'logs');
-    leave: LoggerProps['leave'] = 'info';
+    format = "[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}";
+    logFilePath = path.resolve(app.getPath("appData"), this.appName, "logs");
+    leave: LoggerProps["leave"] = "info";
 
     init = false;
 
@@ -31,7 +31,7 @@ class Logger {
         this.format = props.format || this.format;
         this.logFilePath =
             props.logFilePath ||
-            path.resolve(app.getPath('appData'), this.appName, 'logs');
+            path.resolve(app.getPath("appData"), this.appName, "logs");
         this.initialize();
     }
 
@@ -42,7 +42,7 @@ class Logger {
         log.transports.file.resolvePathFn = () =>
             path.join(
                 this.logFilePath,
-                `app-${this.appName + (app.isPackaged ? '' : '.debug')}.log`
+                `app-${this.appName + (app.isPackaged ? "" : ".debug")}.log`,
             );
 
         log.transports.file.level = this.leave;
@@ -50,18 +50,18 @@ class Logger {
         log.transports.file.format = this.format;
 
         if (!app.isPackaged) {
-            log.transports.console.format = '[{level}] {text}';
-            log.transports.console.level = 'debug';
+            log.transports.console.format = "[{level}] {text}";
+            log.transports.console.level = "debug";
         } else {
             log.transports.console.level = false;
         }
 
         if (!this.init) {
-            process.addListener('unhandledRejection', (error) => {
-                this.error('Unhandled Rejection:', error);
+            process.addListener("unhandledRejection", (error) => {
+                this.error("Unhandled Rejection:", error);
             });
-            process.addListener('uncaughtException', (error) => {
-                this.error('Uncaught Exception:', error);
+            process.addListener("uncaughtException", (error) => {
+                this.error("Uncaught Exception:", error);
             });
         }
     }
@@ -118,7 +118,7 @@ class Logger {
      * 设置日志级别
      * @param {'error' | 'warn' | 'info' | 'verbose' | 'debug' | 'silly'} level
      */
-    setLevel(level: LoggerProps['leave']) {
+    setLevel(level: LoggerProps["leave"]) {
         log.transports.file.level = level;
         if (log.transports.console) {
             log.transports.console.level = level;
