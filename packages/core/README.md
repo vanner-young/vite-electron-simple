@@ -32,21 +32,26 @@ yarn add @vite-electron-simple/core
 #### 使用说明
 
 1. 在项目根目录下安装该包后，使用 mv-cli build、mv-cli start 来替换 vite、vite build 命令。
-2. 在项目根目录下新建 builder.config.js | builder.config.ts 文件，详情请参考示例。
+2. 在项目根目录下新建 builder.config.js | builder.config.ts 文件。
+    > 强烈建议使用 build.config.ts 详情参考下方的配置示例。
 3. 强烈建议开发时，主进程和渲染进程代码分开来写，不要混入在一起。
 
 ```ts
     // package.json
 
     ...
+    "main": "dist_electron/main.js", // electron 主进程入口文件地址, 与 tsconfig.main.json 里面的 outDir 目录保持统一
     "scripts": {
         "dev": "mv-cli start",      // 开发调试
-        "build": "tsc -b && mv-cli build",  // 生产构建, 构建时，若发现存在进程的
+        "build": "tsc -b && mv-cli build",  // 生产构建，构建时会结束正在运行的程序进程
     },
     ...
 ```
 
-#### 示例
+4. tsconfig.main.json 的必要性（主进程为ts代码时）
+    > mv cli 在开发环境和生产环境时，对于主进程的 ts 代码，会使用 ts 按照 tsconfig.main.json 的配置进行打包，因此该文件不要配置 noEmit 等选项。并且输出目录一定要与 package.json 里面的 main 字段对应。
+
+#### 配置示例
 
 ```ts
 // builder.config.ts
@@ -55,44 +60,37 @@ yarn add @vite-electron-simple/core
 import path from 'path';
 import { defineMvConfig } from '@vite-electron-simple/core';  // 辅助函数导入实现编辑器提示
 
-export default () => defineMvConfig({
-        privateConfig: {
-            appName: xxx, // 非必填，程序的名称，会被注入到环境变量中。通过 process.env.APP_NAME 获取。
-            needElectron: true,  // 是否开启electron，当开启时，生产和打包均会添加electron，默认为开启。（非必填）
+export default defineMvConfig({
+    privateConfig: {
+        appName: xxx, // 非必填，程序的名称，会被注入到环境变量中。通过 process.env.APP_NAME 获取。
+        needElectron: true,  // 是否开启electron，当开启时，生产和打包均会添加electron，默认为开启。（非必填）
 
-            // 当主进程 electron 的代码使用了 ts，那么该ts对应的tsconfig.json 的路径，反之可不传递此参数（采用绝对路径）（非必填）
-            // 由于主进程使用了 ts，对于 node 来说是不能直接运行的，因此需要 tsc  将其编译为js文件后在进行运行。此配置文件就是ts的编译配置文件。
-            tsMainConfigPath: path.resolve(__dirname, './tsconfig.main.json'),
+        // 当主进程 electron 的代码使用了 ts，那么该ts对应的tsconfig.json 的路径，反之可不传递此参数（采用绝对路径）（非必填）
+        // 由于主进程使用了 ts，对于 node 来说是不能直接运行的，因此需要 tsc  将其编译为js文件后在进行运行。此配置文件就是ts的编译配置文件。
+        tsMainConfigPath: path.resolve(__dirname, './tsconfig.main.json'),
 
-            move: [         // 开启 electron 时，主进程ts环境下的一些非直接依赖的目录文件在打包时，ts不会去处理，因此需要手动将依赖的文件移动到指定的目录下 （非必填）
-                {
-                    from: 'electron/static',
-                    to: 'dist_electron/static'
-                }
-            ],
-            mainProcessEnvPath: [''] // 开启 electron 时，主进程的环境变量文件地址（非必填）
-            env: ['xxx'] // 开启 electron 时，主进程需要的环境变量文件路径，采用 dotenv 进行注入（非必填）注意：权重大于 mainProcessEnvPath 参数中的环境变量权重
-        },
-        viteConfig: {
-           // ... 其它参数，与 vite defineConfig 一致
-        },
-        electronBuilder: {
-            // ... 其它参数 与 electron-builder 配置保持一致
-        }
-    });
+        move: [  // 开启 electron 时，主进程ts环境下的一些非直接依赖的目录文件在打包时，ts不会去处理，因此需要手动将依赖的文件移动到指定的目录下 （非必填）
+            {
+                from: 'electron/static',
+                to: 'dist_electron/static'
+            }
+        ],
+        mainProcessEnvPath: [''] // 开启 electron 时，主进程的环境变量文件地址（非必填）【注意：渲染进程不会注入】
+    },
+    viteConfig: {
+        // ... 其它参数，与 vite defineConfig 一致
+    },
+    electronBuilder: {
+        // ... 其它参数 与 electron-builder 配置保持一致
+    }
+});
 ```
 
 #### 注意事项
 
-1. 在使用时，渲染进程中可通过 OPEN_ELECTRON 参数来判断当前的环境是否时 Electron 客户端环境。
+##### 环境变量
 
-```ts
-if (!import.meta.env.OPEN_ELECTRON) {
-    // TODO...
-}
-```
-
-2. @vite-electron-simple/core 在开发模式下使用 process 进程加载开发时所需的环境变量。在打包后的环境下，需要安装@vite-electron-simple/common，并在主进程的入口文件中，手动调用此方法来加载环境变量
+1. @vite-electron-simple/core 在开发模式下使用 process 进程加载开发时所需的环境变量。在打包后的环境下，需要安装@vite-electron-simple/common，并在主进程的入口文件中，手动调用此方法来加载环境变量
 
 ```ts
 // npm install @vite-electron-simple/common
@@ -100,42 +98,49 @@ if (!import.meta.env.OPEN_ELECTRON) {
 // 主进程入口文件: app.js|app.ts
 import { loadProductionEnv } from "@vite-electron-simple/common";
 loadProductionEnv();
-
-// ...TODO
 ```
 
-3. 在 builder.config.ts 文件中，不要引入第三方的文件，因为 esbuild 在处理时，只会对 config 文件进行打包，而不会处理引入的文件。
-   (为什么当前版本只能对config文件进行打包：因为 esbuild 在打包时，如果开启了bundle构建的话，会将所有的第三方依赖全部打包为一个文件，包括 node_modules 中的库。由于这些库的代码内容是多样性的，虽然可以使用 external 进行 node_module 的排除，但是对 vite 之后的计划可能会将esbuild 进行排除。因此后续的计划是，等vite彻底替换esbuild后，将esbuild替换为rolldown 进行构建，彻底解决此问题。)
-
-```ts
-// builder.config.ts
-
-import xxx from "./xxx"; // 错误
-// ...TODO
-
-// 应修改为以下方式:
-function xxx() {
-    // TODO...
-}
-xxx();
-// ...TODO
-```
-
-4. 非必要情况，请不要在 builder.config.ts 中添加 mainProcessEnvPath 配置。因为 @vite-electron-simple/core 默认加载 .env 文件，并根据当前的环境，加载 .env.development.local 或 .env.production.local 环境变量文件。
+2. 主进程的环境变量包含：mainProcessEnvPath配置的文件、.env、.env{mode}.local 文件的环境变量。渲染进程不包含 mainProcessEnvPath配置的文件的环境变量。
 
 ```ts
 // 渲染进程中
 import.meta.env.xxx; // 通过 import.meta.env.xxx 来获取;
 
-// Electron 环境
+// 主进程环境
 process.env.xxx; // 通过 process.env 来获取;
 ```
 
-5. 程序默认情况下，会携带以下的环境变量
+3. 程序默认情况下，会携带以下的环境变量
 
 ```ts
     {
         APP_NAME: xxx, // 会根据 builder.config.ts 中的 privateConfig.appName 注入。(process.env.APP_NAME)
-        OPEN_ELECTRON: 1 | 0,  // 用于判断当前的环境是不是开启了主进程。在 privateConfig.needElectron: false 的情况下，是不会开启主进程的。(process.env.OPEN_ELECTRON)
     }
+```
+
+##### move 与 electron builder 中的 extraResources 区别
+
+1. 执行时机的不同
+    - 开发环境下：会在主进程被编译完成后执行，是为了解决 ts 无法将代码中的静态资源文件进行移动的问题。extraResources 则不会在开发环境下执行。
+    - 生产环境：编译时，同样会在主进程被编译完成后执行。move 的执行比 extraResources 要早。
+
+2. 作用不同
+    - move 的设计是为了解决ts的编译静态资源同步问题。move是把静态资源拷贝到 tsconfig.main.json 里面的 outDir 的。
+    - extraResources 是 electron-builder 在 build 阶段为用户提供的配置。另外，extraResources 会在 app.asar 生成后执行的，因此 extraResources 是无法将文件赋值到源文件目录的。
+
+```ts
+// builder.config.ts
+
+// 推荐 move 只用来配置需要把静态资源文件移动到源代码目录的，而不是其它。
+export default defineMvConfig({
+    // ...
+    privateConfig: {
+        move: [
+            {
+                from: "electron/static",
+                to: "dist_electron/static",
+            },
+        ],
+    },
+});
 ```

@@ -62,7 +62,13 @@ export default class Base {
                 `${rootPath} 不是一个有效的项目路径！请更换目录后重试！`,
             );
         this.rootPath = rootPath;
-        this.verifyNeedModule(DEPENDENCIES_MODULE);
+        try {
+            this.verifyNeedModule(DEPENDENCIES_MODULE);
+        } catch (e: unknown) {
+            let error = e as Error;
+            error.message = `mv-cli: mission need library not install：${error.message || error}`;
+            throw error;
+        }
         return true;
     }
     /**
@@ -102,12 +108,19 @@ export default class Base {
         );
 
         // 加载配置文件，并立刻将其删除
-        const configHandler = require(tempFilePath).default;
-        fs.unlinkSync(tempFilePath);
-
-        const types = ["function", "asyncfunction", "object"];
-        if (!isType(configHandler, types))
-            throw new Error("build config file export invalid type...");
+        let configHandler;
+        try {
+            configHandler = require(tempFilePath).default;
+            const types = ["function", "asyncfunction", "object"];
+            if (!isType(configHandler, types))
+                throw new Error("build config file export invalid type...");
+        } catch (e: unknown) {
+            const error = e as Error;
+            error.message = `builder.config.ts translated fail... please check. the error is: ${error.message || error}`;
+            throw error;
+        } finally {
+            fs.unlinkSync(tempFilePath);
+        }
 
         if (isType(configHandler, "object")) return configHandler;
         return await configHandler();

@@ -1,5 +1,5 @@
 import type { InlineConfig } from "vite";
-import type { Configuration } from "electron-builder";
+import type { Configuration, FileSet } from "electron-builder";
 
 export interface BuilderConfig {
     viteConfig: InlineConfig;
@@ -8,11 +8,8 @@ export interface BuilderConfig {
         appName?: string;
         needElectron?: boolean;
         tsMainConfigPath?: string;
-        move?:
-            | Array<{ from: string; to: string }>
-            | { from: string; to: string };
+        move?: Array<FileSet> | FileSet;
         mainProcessEnvPath?: Array<string>;
-        env?: IndexUnKnown;
     };
 }
 
@@ -22,7 +19,7 @@ export type ElectronServeProps = {
     mainProcessEnvPath: BuilderConfig["privateConfig"]["mainProcessEnvPath"];
     needElectron: BuilderConfig["privateConfig"]["needElectron"];
     tsMainConfigPath: BuilderConfig["privateConfig"]["tsMainConfigPath"];
-    publicEnv: BuilderConfig["privateConfig"]["env"];
+    publicEnv: IndexUnKnown;
 };
 
 export interface IndexString {

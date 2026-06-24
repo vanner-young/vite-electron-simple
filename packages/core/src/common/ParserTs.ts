@@ -7,7 +7,7 @@ import { ParserTsProps } from "@/type";
 
 class ParserTs {
     /**
-     * 转换主入口文件
+     * 转换主入口文件，使用 ts 对 tsconfig.main.json 将主进程代码转换为 js
      * **/
     async transformMain({ tsConfigPath, rootPath }: ParserTsProps) {
         if (!fs.existsSync(tsConfigPath))
@@ -29,9 +29,10 @@ class ParserTs {
         esbuild.buildSync({
             entryPoints: [configFilePath],
             outfile: tempFilePath,
-            bundle: false,
+            bundle: true,
             format: "esm",
             target: "esnext",
+            packages: "external",
             loader: { ".ts": "ts", ".js": "js", ".cjs": "js", ".mjs": "js" },
             define: {
                 __dirname: JSON.stringify(rootPath),

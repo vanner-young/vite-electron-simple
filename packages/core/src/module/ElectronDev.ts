@@ -7,17 +7,18 @@ import Base from "@/module/Base";
 import MainProcess from "@/common/MainProcess";
 import ViteServe from "@/module/ViteServe";
 import { DEV_DEFAULT_MODE, DEFAULT_APP_NAME } from "@/constance";
-import { ElectronServeProps, BuilderConfig } from "@/type";
+import { ElectronServeProps, BuilderConfig, IndexString } from "@/type";
 
 class ElectronDev extends Base {
     #config: ElectronServeProps = {
-        appName: DEFAULT_APP_NAME,
-        viteConfig: {},
-        needElectron: false,
-        tsMainConfigPath: "",
-        mainProcessEnvPath: [],
-        publicEnv: {},
+        appName: DEFAULT_APP_NAME, // appName
+        viteConfig: {}, // vite 配置
+        needElectron: false, // 是否需要electron
+        tsMainConfigPath: "", // 主进程ts编译配置文件
+        mainProcessEnvPath: [], // 主进程环境变量文件
+        publicEnv: {}, // 公共环境变量
     };
+    envFile: Array<string> = []; // 环境变量文件(.env | .env.xxx.local)，此文件的内容会被注入到主进程和渲染进程中
 
     /**
      * 入口函数
@@ -35,12 +36,13 @@ class ElectronDev extends Base {
         const config = await this.getConfigFileContent();
         this.getPackageJsonContent();
 
-        const defaultEnvModePath = [
+        this.envFile = [
             resolve(this.rootPath, ".env"),
             resolve(this.rootPath, `.env.${DEV_DEFAULT_MODE}.local`),
         ];
+
         const mainProcessEnvPath = [
-            ...defaultEnvModePath, // 模式环境变量文件路径
+            ...this.envFile, // 环境变量文件路径
             ...(config.privateConfig?.mainProcessEnvPath || []), // 用户自定义变量文件路径
         ];
 
@@ -67,10 +69,14 @@ class ElectronDev extends Base {
     }
 
     /**
-     * 开启服务
+     * 开启Vite渲染进程服务
      * **/
     public async start() {
+        // 渲染进程的环境变量不包含主进程
+        const mapViewEnvConfig = await this.gteEnvConfig(this.envFile);
+
         ViteServe.work(this.#config.viteConfig, {
+            ...mapViewEnvConfig,
             ...this.#config.publicEnv,
         });
     }
@@ -82,13 +88,21 @@ class ElectronDev extends Base {
         this.#config.viteConfig.configFile = false; // 禁用自动解析
         this.#config.viteConfig.root = this.rootPath; // 设置 root 路径
         this.#config.viteConfig.mode = DEV_DEFAULT_MODE; // 设置mode 选项
-        this.#config.viteConfig.plugins = this.#config.viteConfig.plugins || [];
+        this.#config.viteConfig.plugins = this.#config.viteConfig.plugins || []; // rest vite 插件
 
-        const { needElectron } = this.#config;
-        if (needElectron) {
+        // 将环境变量文件转为 map 结构（主进程中也会存在渲染进程的环境变量）
+        const mapFileEnvConfig = await this.gteEnvConfig(
+            this.#config.mainProcessEnvPath,
+        );
+        const envConfig = {
+            ...mapFileEnvConfig,
+            ...this.#config.publicEnv,
+        } as IndexString;
+
+        if (this.#config.needElectron) {
             const mainProcessInput = resolve(
                 this.rootPath,
-                this.packageJson.main,
+                this.packageJson.main, // 取 package.json 里面的 main 字段作为 electron入口
             );
 
             // 处理主进程逻辑
@@ -97,17 +111,15 @@ class ElectronDev extends Base {
                 config,
             });
 
+            // 验证进程入口文件是否存在
             await this.verifyInputDir("", mainProcessInput);
-            const envConfig = await this.gteEnvConfig(
-                this.#config.mainProcessEnvPath,
-            );
 
+            // 开发环境下使用 vite 插件来启动主进程
             this.#config.viteConfig.plugins.push(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (ElectronDevPlugin as any)({
+                ElectronDevPlugin({
                     entry: mainProcessInput,
                     tsConfigPath: this.#config.tsMainConfigPath,
-                    envConfig: { ...envConfig, ...this.#config.publicEnv },
+                    envConfig,
                 }),
             );
         }

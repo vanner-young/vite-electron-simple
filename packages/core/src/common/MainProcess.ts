@@ -22,8 +22,12 @@ class MainProcess {
                 );
                 continue;
             }
-            const fromPath = resolve(parentConfig.rootPath, item.from),
-                toPath = resolve(parentConfig.rootPath, item.to);
+
+            const fromPath = resolve(
+                    parentConfig.rootPath,
+                    item.from as string,
+                ),
+                toPath = resolve(parentConfig.rootPath, item.to as string);
             if (!statSync(fromPath).isDirectory()) {
                 if (statSync(toPath).isDirectory())
                     console.warn(
@@ -58,35 +62,21 @@ class MainProcess {
         const privateConfig = config?.privateConfig;
         if (!privateConfig || !isType(privateConfig, "object")) return config;
 
-        // 处理主进程的 ts 转换
+        // 处理主进程的 ts 转换， 当该文件存在时，默认为主进程代码为ts
         if (privateConfig.tsMainConfigPath) {
             await this.transformTsConfig(
                 privateConfig.tsMainConfigPath,
                 rootPath,
             );
         } else {
-            // 采用 esbuild 将代码编译为 cjs, 有可能主进程的代码也是 es module
-            // TODO...
             console.warn(
                 "private.tsMainConfigPath status is off... ignore main process ts file transform",
             );
         }
 
-        const keys = Object.keys(privateConfig);
-        for (const item of keys) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const handler = (this as any)[item];
+        // 静态资源文件移动, ts 在转换时，不会去编译ts文件中引入的非ts资源
+        if (privateConfig?.move) await this.move(privateConfig?.move, props);
 
-            if (!isType(handler, ["function", "asyncfunction"])) {
-                console.warn(
-                    `warn: ${item} is not exists instance, ignore handler`,
-                );
-                continue;
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            await (this as any)[item]((privateConfig as any)[item], props);
-        }
         return config;
     }
 }

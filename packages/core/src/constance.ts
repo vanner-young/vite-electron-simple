@@ -21,4 +21,4 @@ export const DEPENDENCIES_MODULE = [
 ];
 
 export const DEFAULT_APP_NAME = "vite-electron-simple"; // 默认应用名称
-export const DEFAULT_ENV_FILE_NAME = "electron-builder.env"; // 默认的环境变量文件名称
+export const DEFAULT_ENV_FILE_NAME = "electron-builder.env"; // 打包后的环境变量文件名称

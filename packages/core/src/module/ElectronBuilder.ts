@@ -1,3 +1,4 @@
+import type { FileSet } from "electron-builder";
 import { Platform as BuilderPlatform, build } from "electron-builder";
 import {
     isType,
@@ -28,14 +29,13 @@ class ElectronBuilder extends Base {
         privateConfig: {
             needElectron: false,
             tsMainConfigPath: "",
-            move: [],
             mainProcessEnvPath: [],
-            env: {},
         },
         viteConfig: {},
         electronBuilder: {},
     };
     #publicEnv = {};
+    #defaultEnvPath: Array<string> = [];
 
     /**
      * 开始构建
@@ -52,25 +52,30 @@ class ElectronBuilder extends Base {
     async work() {
         const config = await this.getConfigFileContent();
         const appName = config.privateConfig?.appName || DEFAULT_APP_NAME;
+
+        // 构建时，关闭当前正在运行的主进程
         if (config.privateConfig.needElectron)
             await closeRunningProcess(appName);
 
-        const defaultEnvModePath = [
+        // 渲染进程环境变量文件
+        this.#defaultEnvPath = [
             resolve(this.rootPath, ".env"),
             resolve(this.rootPath, `.env.${PREVIEW_DEFAULT_MODE}.local`),
         ];
+
+        // 主进程环境变量文件
         const mainProcessEnvPath = [
-            ...defaultEnvModePath,
+            ...this.#defaultEnvPath,
             ...(config.privateConfig?.mainProcessEnvPath || []),
         ];
 
         this.#config = recursive(this.#config, config);
         this.#config.privateConfig.mainProcessEnvPath = mainProcessEnvPath;
+
         this.getPackageJsonContent();
         this.#publicEnv = {
             APP_NAME: appName,
-            OPEN_ELECTRON: Number(this.#config.privateConfig.needElectron),
-            ...(config.privateConfig.env || this.#publicEnv),
+            ...this.#publicEnv,
         };
 
         if (
@@ -119,11 +124,31 @@ class ElectronBuilder extends Base {
      * 打包渲染进程代码
      * **/
     async buildVite() {
-        return await ViteBuilder.work(
-            this.#config,
-            this.rootPath,
-            this.#publicEnv,
-        );
+        const mapEnvFile = await this.gteEnvConfig(this.#defaultEnvPath);
+        const envConfig = { ...mapEnvFile, ...this.#publicEnv };
+
+        return await ViteBuilder.work(this.#config, this.rootPath, envConfig);
+    }
+
+    /**
+     * 静态资源文件移动配置
+     * **/
+    moveAssetsConfig(defaultFileSet?: Array<FileSet>): Array<FileSet> {
+        let extraResourcesList: Array<FileSet> = defaultFileSet || [];
+        const extraResources = this.#config.electronBuilder.extraResources as
+            | Array<FileSet>
+            | FileSet
+            | undefined;
+
+        if (extraResources) {
+            extraResourcesList = extraResourcesList.concat(
+                Array.isArray(extraResources)
+                    ? extraResources
+                    : [extraResources],
+            );
+        }
+
+        return extraResourcesList;
     }
 
     /**
@@ -156,32 +181,41 @@ class ElectronBuilder extends Base {
         );
         this.writeBuildEnvFile({ ...configPathEnv, ...this.#publicEnv });
 
-        // 执行构建
+        // 对项目的主进程环境变量，生成环境变量文件
         const moveEnvPath = resolve(this.rootPath, DEFAULT_ENV_FILE_NAME);
+
+        // 移动静态资源
+        const extraResourcesList = this.moveAssetsConfig([
+            {
+                from: moveEnvPath,
+                to: `./env/${DEFAULT_ENV_FILE_NAME}`,
+            },
+        ]);
+
+        // 执行构建
         return build({
             targets: Platform.WINDOWS.createTarget(),
             config: {
                 ...this.#config.electronBuilder,
-                extraResources: {
-                    from: moveEnvPath,
-                    to: `./env/${DEFAULT_ENV_FILE_NAME}`,
-                },
-                afterAllArtifactBuild: async (buildResult) => {
-                    removeFileOrDir(moveEnvPath);
-
-                    let cbPaths: Array<string> = [];
-                    if (
-                        typeof this.#config.electronBuilder
-                            ?.afterAllArtifactBuild === "function"
-                    ) {
-                        cbPaths =
-                            await this.#config.electronBuilder.afterAllArtifactBuild(
-                                buildResult,
-                            );
-                    }
-                    return buildResult.artifactPaths.concat(cbPaths);
-                },
+                extraResources: extraResourcesList,
+                // afterAllArtifactBuild: async (buildResult) => {
+                //     let cbPaths: Array<string> = [];
+                //     if (
+                //         typeof this.#config.electronBuilder
+                //             ?.afterAllArtifactBuild === "function"
+                //     ) {
+                //         cbPaths =
+                //             await this.#config.electronBuilder.afterAllArtifactBuild(
+                //                 buildResult,
+                //             );
+                //     }
+                //     return buildResult.artifactPaths.concat(
+                //         Array.isArray(cbPaths) ? cbPaths : [],
+                //     );
+                // },
             },
+        }).finally(() => {
+            removeFileOrDir(moveEnvPath);
         });
     }
 }

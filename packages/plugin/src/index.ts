@@ -127,7 +127,7 @@ class ElectronDev {
      * 监听DevServer，在启动时，启动Electron程序
      * **/
     public async devServerHooks(server: DevServer) {
-        const _this = this as unknown as ElectronDev;
+        const _this = this as ElectronDev;
         return () => {
             const cb = server.listen;
             server.listen = async function (...rest) {
