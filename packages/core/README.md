@@ -90,7 +90,8 @@ export default defineMvConfig({
 
 ##### 环境变量
 
-1. @vite-electron-simple/core 在开发模式下使用 process 进程加载开发时所需的环境变量。在打包后的环境下，需要安装@vite-electron-simple/common，并在主进程的入口文件中，手动调用此方法来加载环境变量
+1. @vite-electron-simple/core 在开发模式下使用 process 进程加载开发时所需的环境变量。
+   在打包后的环境下，务必需要安装@vite-electron-simple/common，并在主进程的入口文件中，手动调用此方法来加载环境变量。
 
 ```ts
 // npm install @vite-electron-simple/common
