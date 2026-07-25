@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { findParentFile, getSystemInfo, isType } from "mv-common";
+import { findParentFile, isType } from "mv-common";
 import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 
 import { DevServer, ElectronDevProps } from "./type";
@@ -76,7 +76,7 @@ class ElectronDev {
             "package.json",
         );
         this.#childProcess = spawn(...(command as [string, Array<string>]), {
-            shell: getSystemInfo().isWindow,
+            shell: true,
             cwd: rootPath,
             env: {
                 ...process.env,
