@@ -122,21 +122,6 @@ class ElectronDev {
             NODE_ENV: process.env.NODE_ENV,
         };
     }
-
-    /**
-     * 监听DevServer，在启动时，启动Electron程序
-     * **/
-    public async devServerHooks(server: DevServer) {
-        const _this = this as ElectronDev;
-        return () => {
-            const cb = server.listen;
-            server.listen = async function (...rest) {
-                const result = await cb.apply(this, rest);
-                _this.loadElectronProcess(server);
-                return result;
-            };
-        };
-    }
 }
 
 export default function (props: ElectronDevProps) {
@@ -144,7 +129,10 @@ export default function (props: ElectronDevProps) {
     return {
         name: "vite-plugin-start-electron",
         configResolved: () => electronDev.configResolvedHooks(),
-        configureServer: (server: DevServer) =>
-            electronDev.devServerHooks(server),
+        configureServer: (server: DevServer) => {
+            server.httpServer?.once("listening", () => {
+                electronDev.startElectronProcess(server);
+            });
+        },
     };
 }
