@@ -1,5 +1,6 @@
+import { resolve } from "node:path";
 import { existsSync } from "node:fs";
-import { findParentFile, getSystemInfo, isType } from "mv-common";
+import { findParentFile, isType } from "mv-common";
 import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 
 import { DevServer, ElectronDevProps } from "./type";
@@ -45,13 +46,8 @@ class ElectronDev {
     /**
      * process 子进程关闭，重置子进程
      * **/
-    public resetServer(
-        server: DevServer,
-        type: "error" | "exit",
-        error: unknown,
-    ) {
+    public resetServer(type: "error" | "exit", error: unknown) {
         console.log(`electron start fail...${type}：`, error);
-        server.config.inlineConfig.__restartServer = false;
         process.exit(0);
     }
 
@@ -59,24 +55,25 @@ class ElectronDev {
      * 开启process子进程，并监听 tsc的变动，重启子进程
      * **/
     public async startElectronProcess(server: DevServer) {
-        const command = this.#config.tsConfigPath
-            ? [
-                  "mv-tsc-watch",
-                  [
-                      "--project",
-                      this.#config.tsConfigPath,
-                      "--onSuccess",
-                      `"electron ${this.#config.entry}"`,
-                  ],
-              ]
-            : ["electron", [this.#config.entry]];
-
+        const sPath = resolve(__dirname, "./script.js");
         const rootPath = await findParentFile(
             this.#config.entry,
             "package.json",
         );
+        const command = this.#config.tsConfigPath
+            ? [
+                  "tsc-watch",
+                  [
+                      "--project",
+                      this.#config.tsConfigPath,
+                      "--onSuccess",
+                      `"node ${sPath} ${this.#config.entry} ${this.#config.tsConfigPath} ${rootPath}"`,
+                  ],
+              ]
+            : ["node", [sPath, this.#config.entry, this.#config.tsConfigPath]];
+
         this.#childProcess = spawn(...(command as [string, Array<string>]), {
-            shell: getSystemInfo().isWindow,
+            shell: true,
             cwd: rootPath,
             env: {
                 ...process.env,
@@ -84,33 +81,11 @@ class ElectronDev {
                 ...this.#config.envConfig,
             },
         });
-        this.#childProcess.on(
-            "error",
-            this.resetServer.bind(this, server, "error"),
-        );
-        this.#childProcess.on(
-            "exit",
-            this.resetServer.bind(this, server, "exit"),
-        );
 
+        this.#childProcess.on("error", this.resetServer.bind(this, "error"));
+        this.#childProcess.on("exit", this.resetServer.bind(this, "exit"));
         this.#childProcess.stderr.pipe(process.stderr);
-        this.#childProcess.stdout.on("data", (data) => {
-            const consoleValue = data.toString();
-            if (consoleValue.startsWith("mv-tsc-watch:close")) {
-                process.exit(0);
-            } else {
-                console.log(consoleValue);
-            }
-        });
-    }
-
-    /**
-     * 启动Process进程
-     * **/
-    public async loadElectronProcess(server: DevServer) {
-        if (server.config.inlineConfig.__restartServer || !this.open) return;
-        await this.startElectronProcess(server);
-        server.config.inlineConfig.__restartServer = true;
+        this.#childProcess.stdout.pipe(process.stdout);
     }
 
     /**
