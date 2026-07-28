@@ -10,10 +10,10 @@ export default defineConfig({
         format: "cjs",
     },
     external: [
-        "electron-builder",
         "vite",
         "esbuild",
         "electron",
-        "mv-tsc-watch",
+        "electron-builder",
+        "@vite-electron-simple/plugin"
     ],
 });

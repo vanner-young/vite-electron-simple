@@ -16,7 +16,6 @@ export const DEPENDENCIES_MODULE = [
     "electron-builder",
     "vite",
     "electron",
-    "mv-tsc-watch",
     "esbuild",
 ];
 

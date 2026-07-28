@@ -163,7 +163,7 @@ class ElectronBuilder extends Base {
         else if (!outDir)
             throw new Error("view process outdir can not be null...");
 
-        // 处理主进程的打包和构建
+        // 主进程ts代码构建和部分静态资源处理
         await mainProcess.handler({
             config: this.#config,
             rootPath: this.rootPath,

@@ -1,6 +1,6 @@
 {
   "name": "@vite-electron-simple/common",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "一款配套 @vite-electron-simple/core 库从而封装的一套工具类库，里面包含了一些配套使用的模块。",
   "keywords": [
     "@vite-electron-simple/common",
