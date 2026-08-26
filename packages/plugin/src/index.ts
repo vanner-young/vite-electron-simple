@@ -1,7 +1,9 @@
-import { resolve } from "node:path";
-import { existsSync } from "node:fs";
+import * as net from "net";
+import { tmpdir } from "node:os";
+import { resolve, join } from "node:path";
+import { existsSync, unlinkSync } from "node:fs";
 import { findParentFile, isType } from "mv-common";
-import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
+import { spawn } from "node:child_process";
 
 import { DevServer, ElectronDevProps } from "./type";
 
@@ -11,7 +13,7 @@ class ElectronDev {
         tsConfigPath: "",
         envConfig: {},
     };
-    #childProcess: ChildProcessWithoutNullStreams | null = null;
+    ipcPath: string = "";
 
     constructor(config: ElectronDevProps) {
         this.#config = { ...this.#config, ...config };
@@ -44,17 +46,61 @@ class ElectronDev {
     }
 
     /**
-     * process 子进程关闭，重置子进程
+     * 创建本地ipc路径
      * **/
-    public resetServer(type: "error" | "exit", error: unknown) {
-        console.log(`electron start fail...${type}：`, error);
-        process.exit(0);
+    public createLocalIpcPath() {
+        const id = `${process.pid}-vx`;
+
+        if (process.platform === "win32") {
+            return `\\\\.\\pipe\\vx-${id}`;
+        }
+
+        const ipcPath = join(tmpdir(), `vx-${id}.sock`);
+        if (existsSync(ipcPath)) unlinkSync(ipcPath);
+
+        return ipcPath;
+    }
+
+    /**
+     * 开启本地ipc
+     * **/
+    public async openLocalIpcServer() {
+        const ipcPath = this.createLocalIpcPath();
+        const pipeServer = net.createServer((socket) => {
+            socket.once("close", () => {
+                process.exit(0);
+            });
+
+            socket.once("error", (e) => {
+                console.error("local ipc connect fail...", e.message || e);
+                process.exit(0);
+            });
+        });
+
+        return new Promise((resolve) => {
+            const startFail = (e: Error) => {
+                console.error(
+                    "local ipc start fail... process is exit",
+                    e.message || e,
+                );
+                process.exit(0);
+            };
+            pipeServer.on("error", startFail);
+
+            pipeServer.listen(ipcPath, () => {
+                pipeServer.off("error", startFail);
+                resolve(ipcPath);
+            });
+        });
     }
 
     /**
      * 开启process子进程，并监听 tsc的变动，重启子进程
      * **/
     public async startElectronProcess(server: DevServer) {
+        // 本地ipc创建
+        this.ipcPath = (await this.openLocalIpcServer()) as string;
+
         const sPath = resolve(__dirname, "./script.js");
         const rootPath = await findParentFile(
             this.#config.entry,
@@ -72,20 +118,17 @@ class ElectronDev {
               ]
             : ["node", [sPath, this.#config.entry, this.#config.tsConfigPath]];
 
-        this.#childProcess = spawn(...(command as [string, Array<string>]), {
+        spawn(...(command as [string, Array<string>]), {
             shell: true,
             cwd: rootPath,
+            stdio: "inherit",
             env: {
                 ...process.env,
                 ELECTRON_URL: server.resolvedUrls?.local?.[0] || "[:::]",
                 ...this.#config.envConfig,
+                ELECTRON_LOCAL_DEV_PATH: this.ipcPath,
             },
         });
-
-        this.#childProcess.on("error", this.resetServer.bind(this, "error"));
-        this.#childProcess.on("exit", this.resetServer.bind(this, "exit"));
-        this.#childProcess.stderr.pipe(process.stderr);
-        this.#childProcess.stdout.pipe(process.stdout);
     }
 
     /**
@@ -107,6 +150,12 @@ export default function (props: ElectronDevProps) {
         configureServer: (server: DevServer) => {
             server.httpServer?.once("listening", () => {
                 electronDev.startElectronProcess(server);
+            });
+
+            server.httpServer?.once("close", () => {
+                if (electronDev.ipcPath && existsSync(electronDev.ipcPath)) {
+                    unlinkSync(electronDev.ipcPath);
+                }
             });
         },
     };
