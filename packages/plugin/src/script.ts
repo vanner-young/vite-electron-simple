@@ -1,10 +1,6 @@
 import * as net from "node:net";
 import { spawn } from "node:child_process";
 
-// 子进程退出，socket 同步退出
-const processExit = () => {
-    process.exit(0);
-};
 
 (function () {
     const parentSocket = net.createConnection(
@@ -24,6 +20,10 @@ const processExit = () => {
         stdio: "inherit",
     });
 
-    child.on("exit", processExit);
-    child.on("close", processExit);
+    // 子进程退出，socket 通知父进程退出
+    const processExit = () => {
+        parentSocket.write("vx-customer-close")
+    };
+    child.once("exit", processExit);
+    child.once("close", processExit);
 })();

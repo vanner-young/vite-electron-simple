@@ -10,6 +10,7 @@ export interface BuilderConfig {
         tsMainConfigPath?: string;
         move?: Array<FileSet> | FileSet;
         mainProcessEnvPath?: Array<string>;
+        isCleanPrint?: boolean
     };
 }
 
@@ -20,6 +21,7 @@ export type ElectronServeProps = {
     needElectron: BuilderConfig["privateConfig"]["needElectron"];
     tsMainConfigPath: BuilderConfig["privateConfig"]["tsMainConfigPath"];
     publicEnv: IndexUnKnown;
+    isCleanPrint: BuilderConfig['privateConfig']['isCleanPrint']
 };
 
 export interface IndexString {

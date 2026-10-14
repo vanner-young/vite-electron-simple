@@ -17,4 +17,5 @@ export interface ElectronDevProps {
     entry: string;
     tsConfigPath?: string;
     envConfig?: IndexStringType;
+    isCleanPrint?: boolean
 }

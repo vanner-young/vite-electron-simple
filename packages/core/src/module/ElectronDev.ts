@@ -17,6 +17,7 @@ class ElectronDev extends Base {
         tsMainConfigPath: "", // 主进程ts编译配置文件
         mainProcessEnvPath: [], // 主进程环境变量文件
         publicEnv: {}, // 公共环境变量
+        isCleanPrint: false, // 是否在启动时清屏
     };
     envFile: Array<string> = []; // 环境变量文件(.env | .env.xxx.local)，此文件的内容会被注入到主进程和渲染进程中
 
@@ -54,6 +55,7 @@ class ElectronDev extends Base {
             viteConfig: config.viteConfig,
             needElectron: config.privateConfig?.needElectron,
             tsMainConfigPath: config.privateConfig?.tsMainConfigPath,
+            isCleanPrint: !!config.privateConfig.isCleanPrint,
             publicEnv: {
                 APP_NAME: appName,
             },
@@ -120,6 +122,7 @@ class ElectronDev extends Base {
                     entry: mainProcessInput,
                     tsConfigPath: this.#config.tsMainConfigPath,
                     envConfig,
+                    isCleanPrint: this.#config.isCleanPrint
                 }),
             );
         }

@@ -12,6 +12,7 @@ class ElectronDev {
         entry: "",
         tsConfigPath: "",
         envConfig: {},
+        isCleanPrint: false,
     };
     ipcPath: string = "";
 
@@ -67,10 +68,19 @@ class ElectronDev {
     public async openLocalIpcServer() {
         const ipcPath = this.createLocalIpcPath();
         const pipeServer = net.createServer((socket) => {
-            socket.once("close", () => {
-                process.exit(0);
+            // 兼容onSuccess回调异常时，兜底子进程退出时出现错误
+            socket.on("close", (hasError: boolean) => {
+                if (hasError) {
+                    console.log('child vx process has error, exists main process...')
+                    process.exit(0);
+                }
             });
-
+            // 消息通知父进程退出
+            socket.on("data", (data: Buffer) => {
+                if (data.toString() === 'vx-customer-close') {
+                    process.exit(0)
+                }
+            })
             socket.once("error", (e) => {
                 console.error("local ipc connect fail...", e.message || e);
                 process.exit(0);
@@ -108,13 +118,14 @@ class ElectronDev {
         );
         const command = this.#config.tsConfigPath
             ? [
-                  "tsc-watch",
-                  [
-                      "--project",
-                      this.#config.tsConfigPath,
-                      "--onSuccess",
-                      `"node ${sPath} ${this.#config.entry} ${this.#config.tsConfigPath} ${rootPath}"`,
-                  ],
+                "tsc-watch",
+                [
+                    this.#config.isCleanPrint ? undefined : "--noClear",
+                    "--project",
+                    this.#config.tsConfigPath,
+                    "--onSuccess",
+                    `"node ${sPath} ${this.#config.entry} ${this.#config.tsConfigPath} ${rootPath}"`,
+                ].filter(i => i),
               ]
             : ["node", [sPath, this.#config.entry, this.#config.tsConfigPath]];
 
